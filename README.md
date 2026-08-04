@@ -1,26 +1,6 @@
 # Physics-Informed Marketing Mix Modeling (`pimmm`)
 
-```mermaid
-flowchart LR
-    subgraph S1["Spend Signals"]
-        X["Ad Spend Matrix"]
-    end
-
-    subgraph S2["ML Driver Model"]
-        M["Scikit-Learn / Meridian"]
-    end
-
-    subgraph S3["Physics Engine"]
-        O["Generalized Bass ODE"]
-    end
-
-    subgraph S4["Bounded Output"]
-        Y["S-Curve Forecast"]
-    end
-
-    X --> M
-    M --> O
-    O --> Y
+![pimmm banner](banner.svg)
 **Physics-Informed Marketing Mix Modeling (`pimmm`)** is a Python library that unifies machine learning response surfaces with continuous-time innovation-diffusion physics to forecast long-term product adoption and return on ad spend (ROAS).
 
 By embedding the **Generalized Bass Model (GBM)** and **Generalized Innovation-Diffusion (GID)** Ordinary Differential Equations directly into empirical response pipelines, `pimmm` resolves the early-stage non-identifiability problem. This allows robust trajectory forecasting even when training on sparse early-adoption data.
