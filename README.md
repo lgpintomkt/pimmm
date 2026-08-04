@@ -70,3 +70,4 @@ pip install git+https://github.com/lgpintomkt/pimmm.git
 ### Peer-Reviewed Publications
 * Pinto, L. G., Cavique, L., Gomes, O., & Santos, J. M. A. (2024). Inhomogeneous Marketing Mix Diffusion. In F. Botta, M. Macedo, H. Barbosa, & R. Menezes (Eds.), *Complex Networks XV. CompleNet-Live 2024* (Springer Proceedings in Complexity, pp. 29–41). Springer, Cham. https://doi.org/10.1007/978-3-031-57515-0_3
 * Pinto, L. G., Cavique, L., & Santos, J. M. A. (2022). Marketing Mix and New Product Diffusion Models. *Procedia Computer Science*, 204, 885–890. https://doi.org/10.1016/j.procs.2022.08.107
+* Henriques, R., & Pinto, L. (2023). A novel evaluation framework for recommender systems in big data environments. Expert Systems with Applications, 231, 120659. https://doi.org/10.1016/j.eswa.2023.120659
