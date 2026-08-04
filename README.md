@@ -67,9 +67,6 @@ pip install git+https://github.com/lgpintomkt/pimmm.git
 
 `pimmm` is developed as part of ongoing PhD research in Mathematics at the **University of Évora, Portugal** (IIFA / CIMA / DMAT). The core architecture, reduction hierarchy, and effort-time equivalences implemented in this package are formally established across the following works:
 
-### Working Paper (Awaiting Publication)
-* Pinto, L. G., Cavique, L., Gomes, O., Santos, J. M. A., & Ramos, C. (2025). *Generalized Innovation-Diffusion: An Additive-Hazard Representation for Diffusion Control and a Reduction Hierarchy for Marketing Models*. Working Paper.
-
 ### Peer-Reviewed Publications
 * Pinto, L. G., Cavique, L., Gomes, O., & Santos, J. M. A. (2024). Inhomogeneous Marketing Mix Diffusion. In F. Botta, M. Macedo, H. Barbosa, & R. Menezes (Eds.), *Complex Networks XV. CompleNet-Live 2024* (Springer Proceedings in Complexity, pp. 29–41). Springer, Cham. https://doi.org/10.1007/978-3-031-57515-0_3
 * Pinto, L. G., Cavique, L., & Santos, J. M. A. (2022). Marketing Mix and New Product Diffusion Models. *Procedia Computer Science*, 204, 885–890. https://doi.org/10.1016/j.procs.2022.08.107
