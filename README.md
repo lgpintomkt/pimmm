@@ -2,9 +2,8 @@
 
 ```mermaid
 graph LR
-    %% Subgraphs for Pipeline Steps
     subgraph INPUTS[" 📥 Spend Signals "]
-        X["Ad Spend Features (X)"]
+        X["Ad Spend Features X"]
     end
 
     subgraph DRIVERS[" 🏎️ ML Driver / Surface Model "]
@@ -12,19 +11,17 @@ graph LR
     end
 
     subgraph PHYSICS[" ⚛️ Physics-Informed Engine "]
-        ODE["Generalized Bass Model (GBM ODE)<br/><i>dF/dt = (p + qF)(1 - F) · g(x)</i>"]
+        ODE["Generalized Bass Model - GBM ODE"]
     end
 
     subgraph OUTPUT[" 📈 Saturation-Bounded Forecast "]
-        Y["S-Curve Penetration Trajectory F(t) ≤ 1.0"]
+        Y["S-Curve Penetration Trajectory F(t) <= 1.0"]
     end
 
-    %% Flow Connections
     X --> DRIVERS
-    DRIVERS -- "Latent Marketing Effort g(x)" --> PHYSICS
-    PHYSICS --> OUTPUT
+    DRIVERS --> ODE
+    ODE --> Y
 
-    %% Styling
     style INPUTS fill:#0f172a,stroke:#334155,color:#fff
     style DRIVERS fill:#1e1b4b,stroke:#6366f1,color:#fff
     style PHYSICS fill:#0f172a,stroke:#38bdf8,color:#fff
