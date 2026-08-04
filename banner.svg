@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="100%" height="100%">
+  <defs>
+    <!-- Dark Tech Background Gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#1E1B4B" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Accent Glow Gradient -->
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#C084FC" />
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#FFFFFF" stroke-opacity="0.04" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="320" fill="url(#bg)" rx="16" />
+  <rect width="1200" height="320" fill="url(#grid)" rx="16" />
+
+  <!-- Abstract S-Curve Graphic (Dynamic Diffusion ODE) -->
+  <g transform="translate(700, 40)">
+    <!-- Baseline Flatline (Traditional ML failure) -->
+    <path d="M 0 220 Q 80 220 120 180 T 160 170 L 400 170" fill="none" stroke="#F59E0B" stroke-width="3" stroke-dasharray="6,6" opacity="0.6" />
+    <!-- Linear Breach (Linear baseline failure) -->
+    <path d="M 0 220 L 350 -20" fill="none" stroke="#EF4444" stroke-width="3" stroke-dasharray="6,6" opacity="0.5" />
+    
+    <!-- PI-MMM True Physics S-Curve -->
+    <path d="M 0 220 C 100 220, 150 200, 200 120 C 250 40, 300 20, 420 20" fill="none" stroke="url(#accent)" stroke-width="6" stroke-linecap="round" />
+    
+    <!-- Market Saturation Ceiling Line -->
+    <line x1="0" y1="20" x2="420" y2="20" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.4" />
+    <text x="425" y="24" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" opacity="0.6">100% Saturation</text>
+    
+    <!-- Training Horizon Cutoff Region -->
+    <rect x="0" y="0" width="120" height="240" fill="#38BDF8" opacity="0.05" rx="4" />
+    <line x1="120" y1="0" x2="120" y2="240" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="2,4" opacity="0.5" />
+    <text x="10" y="232" fill="#38BDF8" font-family="system-ui, sans-serif" font-size="11" font-weight="600" opacity="0.8">Early Horizon (≤20%)</text>
+  </g>
+
+  <!-- Title & Branding -->
+  <text x="80" y="130" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="900" letter-spacing="-1.5">pimmm</text>
+  <text x="335" y="100" fill="#818CF8" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700">v0.1.0</text>
+
+  <!-- Tagline -->
+  <text x="80" y="175" fill="url(#accent)" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="600" letter-spacing="-0.5">Physics-Informed Marketing Mix Modeling</text>
+  
+  <!-- Subtitle -->
+  <text x="80" y="215" fill="#94A3B8" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="400">Bridging ML Response Surfaces with Continuous-Time Diffusion ODEs</text>
+
+  <!-- Feature Pills -->
+  <g transform="translate(80, 248)">
+    <!-- Pill 1 -->
+    <rect x="0" y="0" width="130" height="28" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1" />
+    <text x="65" y="18" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="middle">Scikit-Learn API</text>
+
+    <!-- Pill 2 -->
+    <rect x="140" y="0" width="150" height="28" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1" />
+    <text x="215" y="18" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="middle">Generalized Bass ODE</text>
+
+    <!-- Pill 3 -->
+    <rect x="300" y="0" width="140" height="28" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1" />
+    <text x="370" y="18" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="middle">Google Meridian Ready</text>
+  </g>
+</svg>
