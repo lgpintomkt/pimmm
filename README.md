@@ -58,4 +58,6 @@ print(model.get_params_summary())
 
 ## 📦 Installation
 
-```pip install pimmm
+```bash
+pip install pimmm
+```
