@@ -59,5 +59,5 @@ print(model.get_params_summary())
 ## 📦 Installation
 
 ```bash
-pip install pimmm
+pip install git+[https://github.com/lgpintomkt/pimmm.git](https://github.com/lgpintomkt/pimmm.git)
 ```
