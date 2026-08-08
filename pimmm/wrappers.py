@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, RegressorMixin
 
+class TabFMCompatibilityError(TypeError):
+    """Raised when a TabFM model does not satisfy the required protocol."""
+    pass
+
 class TabFMResponseWrapper(BaseEstimator, RegressorMixin):
     """
     Adapter wrapper mapping Tabular Foundation Models (TabFM) 
