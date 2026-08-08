@@ -3,7 +3,6 @@ import pandas as pd
 import pytest
 from types import SimpleNamespace
 from unittest.mock import Mock
-
 from pimmm.wrappers import (
     MeridianResponseWrapper, MeridianCompatibilityError,
     TabFMResponseWrapper, TabFMCompatibilityError

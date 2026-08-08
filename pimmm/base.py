@@ -45,19 +45,28 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         self.q_bounds = q_bounds
         self.F0 = F0
 
-    def fit(self, X, y, t_eval=None):
-        """
-        Fit the PI-MMM parameters (p, q) against observed penetration y.
-        gamma is treated as a fixed hyperparameter.
-        """
+    def fit(self, X, y, t_eval=None, n_restarts: int = 1, rng_seed: int | None = None):
         X_arr = np.asarray(X)
         y_arr = np.asarray(y)
 
+        # Basic input validation
+        if y_arr.size == 0 or X_arr.size == 0:
+            raise ValueError("X and y must be non-empty.")
+        if not np.all(np.isfinite(y_arr)):
+            raise ValueError("y contains NaN or infinite values.")
+        if not np.all(np.isfinite(X_arr)):
+            raise ValueError("X contains NaN or infinite values.")
+
         if t_eval is None:
             t_eval = np.arange(0, len(y_arr) * self.dt, self.dt)
+        t_eval = np.asarray(t_eval)
+        if t_eval.ndim != 1 or len(t_eval) != len(y_arr):
+            raise ValueError("t_eval must be a 1D array with same length as y.")
+        if not np.all(np.diff(t_eval) > 0):
+            raise ValueError("t_eval must be strictly increasing.")
 
         # Extract spend signal
-        if X_arr.ndim == 1 or X_arr.shape[1] == 1:
+        if X_arr.ndim == 1 or (X_arr.ndim == 2 and X_arr.shape[1] == 1):
             spend_signal = X_arr.flatten()
         else:
             if self.response_model is not None:
@@ -65,6 +74,12 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
                 spend_signal = self.response_model.predict(X)
             else:
                 spend_signal = np.mean(X_arr, axis=1)
+
+        spend_signal = np.asarray(spend_signal).squeeze()
+        if spend_signal.shape[0] != len(y_arr):
+            raise ValueError("Derived spend_signal length does not match y length.")
+        if not np.all(np.isfinite(spend_signal)):
+            raise ValueError("Derived spend_signal contains NaN or infinite values.")
 
         def loss_function(params):
             p, q = params
@@ -75,20 +90,67 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
                 F0=self.F0,
                 dt=self.dt,
             )
-            return np.sum((preds - y_arr) ** 2)
+            return float(np.sum((preds - y_arr) ** 2))
 
-        initial_guess = [0.01, 0.2]
         bounds = [self.p_bounds, self.q_bounds]
+        rng = np.random.default_rng(rng_seed)
 
-        res = minimize(
-            loss_function, x0=initial_guess, bounds=bounds, method="L-BFGS-B"
-        )
+        best_res = None
+        best_fun = np.inf
 
-        self.p_opt_, self.q_opt_ = res.x
+        for attempt in range(max(1, int(n_restarts))):
+            if attempt == 0:
+                x0 = [0.01, 0.2]
+            else:
+                # random initial guess within bounds
+                x0 = [
+                    float(rng.uniform(low=b[0], high=b[1])),
+                    float(rng.uniform(low=b[0], high=b[1])),
+                ]
+
+            try:
+                res = minimize(loss_function, x0=x0, bounds=bounds, method="L-BFGS-B")
+            except Exception as e:
+                # keep trying other restarts but record the exception
+                res = None
+                last_exception = e
+
+            if res is None:
+                continue
+
+            # Keep the best finite objective
+            if np.isfinite(res.fun) and res.fun < best_fun:
+                best_fun = float(res.fun)
+                best_res = res
+
+            # If res.success and finite, we can break early (optional)
+            if getattr(res, "success", False) and np.isfinite(res.fun):
+                best_res = res
+                break
+
+        # Store optimization diagnostics
+        self.optimization_result_ = best_res
+
+        # Validate optimization result
+        if best_res is None:
+            # No successful run produced a finite result
+            raise RuntimeError(
+                "Optimization failed on all attempts; no finite result obtained."
+            )
+
+        if not getattr(best_res, "success", False):
+            raise RuntimeError(
+                f"Optimization did not converge: status={getattr(best_res, 'status', None)}, message={getattr(best_res, 'message', '')}"
+            )
+
+        if not np.all(np.isfinite(best_res.x)) or not np.isfinite(best_res.fun):
+            raise RuntimeError("Optimization returned non-finite parameters or objective.")
+
+        # Publish fitted attributes only after passing checks
+        self.p_opt_, self.q_opt_ = map(float, best_res.x)
         self.is_fitted_ = True
         self.spend_signal_ = spend_signal
 
-        # Store terminal state and training horizon for forecasting
         fitted_curve = simulate_pimmm(
             params=[self.p_opt_, self.q_opt_, self.gamma],
             spend_array=spend_signal,
@@ -96,6 +158,11 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
             F0=self.F0,
             dt=self.dt,
         )
+        if not np.all(np.isfinite(fitted_curve)):
+            # Roll back fitted state if simulation is invalid
+            self.is_fitted_ = False
+            raise RuntimeError("Simulated fitted curve contains non-finite values.")
+
         self.F_end_ = float(fitted_curve[-1])
         self.t_end_ = float(t_eval[-1])
 
