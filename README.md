@@ -53,7 +53,7 @@ predictions = model.predict(X_spend_future)
 
 # 5. Extract recovered physical constants
 print(model.get_params_summary())
-# Output: {'Innovation (p)': 0.012, 'Imitation (q)': 0.341, 'Scale Factor (gamma)': 0.82}
+# Output: {'Innovation (p)': 0.012, 'Imitation (q)': 0.341
 ```
 ---
 
