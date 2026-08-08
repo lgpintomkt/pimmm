@@ -1,3 +1,5 @@
+![experimental](https://img.shields.io/badge/⚠️-experimental-critical)
+
 # Physics-Informed Marketing Mix Modeling (`pimmm`)
 
 ![pimmm banner](banner.svg)
