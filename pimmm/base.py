@@ -26,7 +26,7 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
     q_bounds : tuple, default=(0.1, 0.8)
         Imitation coefficient (q) bounds.
     F0 : float, default=0.001
-        Initial adoption level.
+        Initial adoption level used when fitting / predicting full trajectories.
     """
 
     def __init__(
@@ -49,15 +49,6 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         """
         Fit the PI-MMM parameters (p, q) against observed penetration y.
         gamma is treated as a fixed hyperparameter.
-
-        Parameters
-        ----------
-        X : array-like or DataFrame of shape (n_samples, n_features)
-            Marketing features / Spend signals over time.
-        y : array-like of shape (n_samples,)
-            Observed cumulative adoption trajectories / penetration state F(t).
-        t_eval : array-like of shape (n_samples,), optional
-            Time step evaluations. Default creates np.arange(0, len(X)*dt, dt).
         """
         X_arr = np.asarray(X)
         y_arr = np.asarray(y)
@@ -65,7 +56,7 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         if t_eval is None:
             t_eval = np.arange(0, len(y_arr) * self.dt, self.dt)
 
-        # If spend is 1D array/series, extract directly; else use response_model
+        # Extract spend signal
         if X_arr.ndim == 1 or X_arr.shape[1] == 1:
             spend_signal = X_arr.flatten()
         else:
@@ -97,17 +88,58 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         self.is_fitted_ = True
         self.spend_signal_ = spend_signal
 
+        # Store terminal state and training horizon for forecasting
+        fitted_curve = simulate_pimmm(
+            params=[self.p_opt_, self.q_opt_, self.gamma],
+            spend_array=spend_signal,
+            t_eval=t_eval,
+            F0=self.F0,
+            dt=self.dt,
+        )
+        self.F_end_ = float(fitted_curve[-1])
+        self.t_end_ = float(t_eval[-1])
+
         return self
 
-    def predict(self, X_future, t_eval_future=None):
+    def predict(self, X, t_eval=None):
         """
-        Predict continuous-time adoption S-curve trajectory using fitted physics model.
+        Predict a full adoption trajectory starting from F0.
+        Use this for in-sample curves or complete simulations.
         """
         check_is_fitted(self, attributes=["is_fitted_"])
 
+        X_arr = np.asarray(X)
+        if t_eval is None:
+            t_eval = np.arange(0, len(X_arr) * self.dt, self.dt)
+
+        if X_arr.ndim == 1 or X_arr.shape[1] == 1:
+            spend_signal = X_arr.flatten()
+        else:
+            spend_signal = self.response_model.predict(X)
+
+        params = [self.p_opt_, self.q_opt_, self.gamma]
+        return simulate_pimmm(
+            params, spend_signal, t_eval, F0=self.F0, dt=self.dt
+        )
+
+    def forecast(self, X_future, t_eval_future=None):
+        """
+        Continue the adoption curve from the end of the training period.
+
+        This is the method that should be used for future-only forecasting
+        so that the trajectory remains continuous.
+        """
+        check_is_fitted(self, attributes=["is_fitted_", "F_end_", "t_end_"])
+
         X_arr = np.asarray(X_future)
+
         if t_eval_future is None:
-            t_eval_future = np.arange(0, len(X_arr) * self.dt, self.dt)
+            n_steps = len(X_arr)
+            t_eval_future = np.arange(
+                self.t_end_ + self.dt,
+                self.t_end_ + (n_steps + 1) * self.dt,
+                self.dt,
+            )[:n_steps]
 
         if X_arr.ndim == 1 or X_arr.shape[1] == 1:
             spend_signal = X_arr.flatten()
@@ -116,7 +148,11 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
 
         params = [self.p_opt_, self.q_opt_, self.gamma]
         return simulate_pimmm(
-            params, spend_signal, t_eval_future, F0=self.F0, dt=self.dt
+            params,
+            spend_signal,
+            t_eval_future,
+            F0=self.F_end_,
+            dt=self.dt,
         )
 
     def get_params_summary(self):
