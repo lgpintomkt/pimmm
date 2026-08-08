@@ -34,20 +34,16 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         self,
         response_model=None,
         dt=0.5,
-        gamma_prior=0.8,
-        regularization_weight=0.1,
+        gamma=1.0,                    # now a fixed hyperparameter
         p_bounds=(0.001, 0.1),
         q_bounds=(0.1, 0.8),
-        gamma_bounds=(0.2, 1.5),
         F0=0.001
     ):
         self.response_model = response_model
         self.dt = dt
-        self.gamma_prior = gamma_prior
-        self.regularization_weight = regularization_weight
+        self.gamma = gamma            # fixed
         self.p_bounds = p_bounds
         self.q_bounds = q_bounds
-        self.gamma_bounds = gamma_bounds
         self.F0 = F0
 
     def fit(self, X, y, t_eval=None):
@@ -81,16 +77,15 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
 
         # Physics Loss Function with Regularization (Section 4 & Theorem 6.1)
         def loss_function(params):
+            p, q = params
             preds = simulate_pimmm(
-                params=params, 
-                spend_array=spend_signal, 
-                t_eval=t_eval, 
-                F0=self.F0, 
+                params=[p, q, self.gamma],
+                spend_array=spend_signal,
+                t_eval=t_eval,
+                F0=self.F0,
                 dt=self.dt
             )
-            # Penalty term resolving non-identifiability
-            penalty = self.regularization_weight * ((params[2] - self.gamma_prior) ** 2)
-            return np.sum((preds - y_arr) ** 2) + penalty
+            return np.sum((preds - y_arr) ** 2)
 
         # Optimization
         initial_guess = [0.01, 0.2, self.gamma_prior]
@@ -119,7 +114,7 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         else:
             spend_signal = self.response_model.predict(X_future)
             
-        params = [self.p_opt_, self.q_opt_, self.gamma_opt_]
+        params = [self.p_opt_, self.q_opt_, self.gamma]
         return simulate_pimmm(params, spend_signal, t_eval_future, F0=self.F0, dt=self.dt)
 
     def get_params_summary(self):
@@ -127,6 +122,5 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         check_is_fitted(self, attributes=["is_fitted_"])
         return {
             "Innovation (p)": self.p_opt_,
-            "Imitation (q)": self.q_opt_,
-            "Scale Factor (gamma)": self.gamma_opt_
+            "Imitation (q)": self.q_opt_
         }
