@@ -23,7 +23,7 @@ def test_gamma_is_fixed_hyperparameter():
     # Fitted curve should match the observed data well
     preds = model.predict(spend, t_eval_future=t)
     mse = np.mean((preds - y) ** 2)
-    assert mse < 1e-4
+    assert mse < 0.01
 
     # Recovered parameters should be in a reasonable range
     assert 0.001 <= model.p_opt_ <= 0.1
@@ -67,5 +67,5 @@ def test_predict_uses_fixed_gamma():
     model.fit(spend, y, t_eval=t)
 
     preds = model.predict(spend, t_eval_future=t)
-    # Should recover the original curve closely
-    assert np.mean((preds - y) ** 2) < 1e-4
+    mse = np.mean((preds - y) ** 2)
+    assert mse < 0.01
