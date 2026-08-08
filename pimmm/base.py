@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import minimize
+import scipy.optimize as optimize
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.utils.validation import check_is_fitted
 from .integration import simulate_pimmm
@@ -109,7 +109,7 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
                 ]
 
             try:
-                res = minimize(loss_function, x0=x0, bounds=bounds, method="L-BFGS-B")
+                res = optimize.minimize(loss_function, x0=x0, bounds=bounds, method="L-BFGS-B")
             except Exception as e:
                 # keep trying other restarts but record the exception
                 res = None
