@@ -46,10 +46,43 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         self.F0 = F0
 
     def fit(self, X, y, t_eval=None, n_restarts: int = 1, rng_seed: int | None = None):
+        import numpy as np
+        import scipy.optimize as optimize
+    
         X_arr = np.asarray(X)
         y_arr = np.asarray(y)
     
-        # ... input validation and spend_signal extraction unchanged ...
+        # Basic input validation
+        if X_arr.size == 0 or y_arr.size == 0:
+            raise ValueError("X and y must be non-empty.")
+        if not np.all(np.isfinite(y_arr)):
+            raise ValueError("y contains NaN or infinite values.")
+        if not np.all(np.isfinite(X_arr)):
+            raise ValueError("X contains NaN or infinite values.")
+    
+        if t_eval is None:
+            t_eval = np.arange(0, len(y_arr) * self.dt, self.dt)
+        t_eval = np.asarray(t_eval)
+        if t_eval.ndim != 1 or len(t_eval) != len(y_arr):
+            raise ValueError("t_eval must be a 1D array with same length as y.")
+        if not np.all(np.diff(t_eval) > 0):
+            raise ValueError("t_eval must be strictly increasing.")
+    
+        # Extract spend signal (always set before optimizer)
+        if X_arr.ndim == 1 or (X_arr.ndim == 2 and X_arr.shape[1] == 1):
+            spend_signal = X_arr.flatten()
+        else:
+            if self.response_model is not None:
+                self.response_model.fit(X, y)
+                spend_signal = self.response_model.predict(X)
+            else:
+                spend_signal = np.mean(X_arr, axis=1)
+    
+        spend_signal = np.asarray(spend_signal).squeeze()
+        if spend_signal.shape[0] != len(y_arr):
+            raise ValueError("Derived spend_signal length does not match y length.")
+        if not np.all(np.isfinite(spend_signal)):
+            raise ValueError("Derived spend_signal contains NaN or infinite values.")
     
         def loss_function(params):
             p, q = params
@@ -68,14 +101,13 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
         best_res = None
         best_fun = np.inf
     
+        # Evaluate all restarts and pick best finite objective
         for attempt in range(max(1, int(n_restarts))):
             if attempt == 0:
                 x0 = [0.01, 0.2]
             else:
-                x0 = [
-                    float(rng.uniform(low=b[0], high=b[1])),
-                    float(rng.uniform(low=b[0], high=b[1])),
-                ]
+                # sample each parameter within its bound
+                x0 = [float(rng.uniform(low=b[0], high=b[1])) for b in bounds]
     
             try:
                 res = optimize.minimize(loss_function, x0=x0, bounds=bounds, method="L-BFGS-B")
@@ -85,16 +117,17 @@ class PhysicsInformedMMM(BaseEstimator, RegressorMixin):
             if res is None:
                 continue
     
-            if np.isfinite(res.fun) and res.fun < best_fun:
+            if np.isfinite(getattr(res, "fun", np.nan)) and res.fun < best_fun:
                 best_fun = float(res.fun)
                 best_res = res
     
+        # Store optimization diagnostics
         self.optimization_result_ = best_res
     
         if best_res is None:
             raise RuntimeError("Optimization failed on all attempts; no finite result obtained.")
     
-        # Accept best result if parameters and objective are finite
+        # Validate finite parameters and objective
         if not np.all(np.isfinite(best_res.x)) or not np.isfinite(best_res.fun):
             raise RuntimeError("Optimization returned non-finite parameters or objective.")
     
