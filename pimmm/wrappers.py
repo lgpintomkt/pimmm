@@ -21,9 +21,9 @@ class TabFMResponseWrapper(BaseEstimator, RegressorMixin):
 
     def fit(self, X, y):
         X_df = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
-        # Prefer regression API if available
+    
+        # Prefer regression API
         if self.mode in ("auto", "regressor") and hasattr(self.tabfm_model, "fit") and hasattr(self.tabfm_model, "predict"):
-            # Assume regressor API
             try:
                 self.tabfm_model.fit(X_df, np.asarray(y))
             except Exception as e:
@@ -31,16 +31,26 @@ class TabFMResponseWrapper(BaseEstimator, RegressorMixin):
             self._validated = True
             self._mode_used = "regressor"
             return self
-        # Otherwise require classifier mode with explicit semantics
+    
+        # Classifier API
         if self.mode in ("auto", "classifier") and hasattr(self.tabfm_model, "fit") and hasattr(self.tabfm_model, "predict_proba"):
-            # Validate classes and non-degenerate target
-            if np.all(np.asarray(y) == y[0]):
+            y_arr = np.asarray(y)
+    
+            if np.all(y_arr == y_arr[0]):
                 raise TabFMCompatibilityError("Target is constant; classifier mode is not appropriate.")
-            # User must supply class mapping if they want classifier mode; do not auto-median-split
-            raise TabFMCompatibilityError(
-                "TabFM model exposes classifier API. To use classifier mode, provide pre-binned class labels "
-                "and set mode='classifier'. Do not rely on automatic median-split conversion."
-            )
+    
+            if np.issubdtype(y_arr.dtype, np.number):
+                raise TabFMCompatibilityError("Classifier mode requires explicit class labels; numeric targets are not allowed.")
+    
+            try:
+                self.tabfm_model.fit(X_df, y_arr)
+            except Exception as e:
+                raise RuntimeError(f"TabFM classifier fit failed: {e!r}")
+    
+            self._validated = True
+            self._mode_used = "classifier"
+            return self
+    
         raise TabFMCompatibilityError("tabfm_model does not expose a compatible regression or classifier API.")
 
     def predict(self, X):
