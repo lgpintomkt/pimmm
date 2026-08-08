@@ -21,7 +21,7 @@ def test_gamma_is_fixed_hyperparameter():
     assert model.get_params_summary()["Scale Factor (gamma)"] == 1.0
 
     # Fitted curve should match the observed data well
-    preds = model.predict(spend, t_eval_future=t)
+    preds = model.predict(spend, t_eval=t)
     mse = np.mean((preds - y) ** 2)
     assert mse < 0.01
 
@@ -66,6 +66,6 @@ def test_predict_uses_fixed_gamma():
     model = PhysicsInformedMMM(gamma=0.7, dt=0.5)
     model.fit(spend, y, t_eval=t)
 
-    preds = model.predict(spend, t_eval_future=t)
+    preds = model.predict(spend, t_eval=t)
     mse = np.mean((preds - y) ** 2)
     assert mse < 0.01
